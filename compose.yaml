@@ -1,0 +1,37 @@
+# Use root/example as user/password credentials
+# version: '3.1'
+
+services:
+  pic4calcetto_db:
+    image: postgres
+    container_name: pic4calcetto_db
+    restart: always
+    privileged: true
+    environment:
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_USER: pic4calcetto
+    volumes:
+      - ./create_uppload_match/createDB.sql:/docker-entrypoint-initdb.d/createDB.sql
+      - ./db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+ 
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  
+  pic4calcetto:
+    build: .
+    container_name: pic4calcetto
+    restart: always
+    environment:
+      DATABASE_CONFIG: "{'host': 'pic4calcetto_db', 'database': 'postgres', 'user': 'postgres', 'password': 'example'}"
+    ports:
+      - 8082:8082
+    depends_on:
+      - pic4calcetto_db
